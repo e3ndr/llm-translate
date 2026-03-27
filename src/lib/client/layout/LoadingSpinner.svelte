@@ -6,7 +6,7 @@
 		height: 14px;
 		border-radius: 50%;
 		display: inline-block;
-		border-top: 3px solid var(--radix-intermediate-sand-11);
+		border-top: 3px solid var(--radix-intermediate-gray-11);
 		border-right: 3px solid transparent;
 		box-sizing: border-box;
 		animation: rotation 1s linear infinite;
