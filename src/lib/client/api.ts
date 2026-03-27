@@ -19,9 +19,10 @@ export async function* translate(
 	from: LanguageCode,
 	to: LanguageCode,
 	text: string,
-	fetchFn = fetch
+	signal?: AbortSignal
 ): AsyncIterableIterator<TranslationChunk> {
-	const res = await fetchFn('/api/translate', {
+	const res = await fetch('/api/translate', {
+		signal: signal,
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ from, to, text })

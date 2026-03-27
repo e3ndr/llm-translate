@@ -16,11 +16,13 @@
 
 	let textInput = $state('');
 	let translatedOutput = $state('');
-	let translatedTokens = $state(0);
 	let copyTranslationConfirm = $state(false);
-	let translateElapsedTimeMs = $state(0);
+	let wasAborted = $state(false);
 
 	let isLoading = $state(false);
+	let translatedTokens = $state(0);
+	let translateElapsedTimeMs = $state(0);
+	let abortController: AbortController | null = $state(null);
 
 	let sourceLanguage = $state(LanguageCode.auto);
 	let targetLanguage = $state(LanguageCode.en);
@@ -38,6 +40,12 @@
 		translatedTokens = 0;
 		translateElapsedTimeMs = 0;
 		isLoading = true;
+		abortController = new AbortController();
+		wasAborted = false;
+
+		abortController.signal.addEventListener('abort', () => {
+			wasAborted = true;
+		});
 
 		const startedAt = performance.now();
 		let translationBuffer = '';
@@ -55,7 +63,12 @@
 			}
 			requestAnimationFrame(update);
 
-			for await (const chunk of translate(sourceLanguage, targetLanguage, textInput)) {
+			for await (const chunk of translate(
+				sourceLanguage,
+				targetLanguage,
+				textInput,
+				abortController.signal
+			)) {
 				translationBuffer += chunk.content;
 				translatedTokensBuffer = chunk.totalTokens;
 			}
@@ -64,6 +77,7 @@
 			translatedOutput = translationBuffer.trim();
 			translatedTokens = translatedTokensBuffer;
 			translateElapsedTimeMs = performance.now() - startedAt;
+			abortController = null;
 		}
 	}
 
@@ -187,12 +201,49 @@
 			>
 				<div class="flex flex-row space-x-2">
 					{#if isLoading}
-						<div>
-							<LoadingSpinner />
-						</div>
+						<button
+							onclick={() => abortController?.abort('User requested cancellation')}
+							class="group"
+							style:width="14px"
+						>
+							<span class="group-hover:hidden">
+								<LoadingSpinner />
+							</span>
+
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="hidden h-4 w-4 -translate-y-0.5 group-hover:inline"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg
+							>
+						</button>
 					{/if}
 
-					{#if translateElapsedTimeMs > 0}
+					{#if wasAborted}
+						<span> Cancelled </span>
+
+						<button onclick={doTranslate} class="text-sm underline hover:text-gray-11">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-4 w-4"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path
+									d="M3 3v5h5"
+								/></svg
+							>
+
+							<span class="sr-only">Retry translation</span>
+						</button>
+					{:else if translateElapsedTimeMs > 0}
 						{@const seconds = (translateElapsedTimeMs / 1000).toFixed(1)}
 						<span class="tabular-nums">
 							{seconds}s
