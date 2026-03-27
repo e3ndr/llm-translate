@@ -4,6 +4,7 @@ import { Provider, type ResponseChunk, type ConversationMessage } from './_index
 
 export class OllamaProvider extends Provider {
 	async *stream(
+		signal: AbortSignal,
 		model: string,
 		messages: ConversationMessage[]
 	): AsyncIterableIterator<ResponseChunk> {
@@ -15,6 +16,7 @@ export class OllamaProvider extends Provider {
 		};
 
 		const response = await fetch(`${env.OLLAMA_ENDPOINT}/api/chat`, {
+			signal: signal,
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

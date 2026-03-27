@@ -41,7 +41,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const prompt = cachedModel!.prompt(from, to, text);
 
 	return ndjsonResponse(async (send) => {
-		for await (const t of cachedProvider!.stream(env.MODEL!, prompt)) {
+		for await (const t of cachedProvider!.stream(request.signal, env.MODEL!, prompt)) {
 			send(t);
 		}
 	});

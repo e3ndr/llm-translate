@@ -22,6 +22,7 @@ export declare interface ResponseChunk {
 
 export abstract class Provider {
 	abstract stream(
+		signal: AbortSignal,
 		model: string,
 		messages: ConversationMessage[]
 	): AsyncIterableIterator<ResponseChunk>;
