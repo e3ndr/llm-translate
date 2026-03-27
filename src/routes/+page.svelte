@@ -84,9 +84,9 @@
 	<title>{env.PUBLIC_SITENAME || 'LLM-Translate'}</title>
 </svelte:head>
 
-<div class="flex h-full w-full flex-col space-y-3 p-8">
-	<div class="flex items-center space-x-2">
-		<div class="flex-1">
+<div class="flex h-full w-full flex-col space-y-3 p-4 sm:p-6 md:p-8">
+	<div class="flex flex-col items-center space-y-1 md:flex-row md:space-x-2">
+		<div class="w-full flex-1">
 			<LanguageSelector
 				supportedLanguages={data.metadata.supportedLanguages}
 				bind:recentLanguages
@@ -120,7 +120,7 @@
 			<span class="sr-only">Swap languages</span>
 		</button>
 
-		<div class="flex-1">
+		<div class="w-full flex-1">
 			<LanguageSelector
 				supportedLanguages={data.metadata.supportedLanguages}
 				bind:recentLanguages
@@ -131,7 +131,7 @@
 		</div>
 	</div>
 
-	<div class="flex w-full flex-1 space-x-3">
+	<div class="flex w-full flex-1 flex-col space-y-2 md:flex-row md:space-x-3">
 		<div class="basis-1/2">
 			<TextField
 				bind:text={textInput}

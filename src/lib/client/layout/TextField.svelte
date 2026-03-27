@@ -27,5 +27,5 @@
 	dir={ALL_LANGUAGES_MAPPED[language].direction}
 	class:bg-gray-3={!readonly}
 	class:bg-gray-2={readonly}
-	class="text-md h-96 w-full resize-none rounded-2xl p-4 text-gray-12 not-read-only:hover:border-gray-2 focus:outline-none"
+	class="text-md h-full max-h-96 w-full resize-none rounded-2xl p-4 text-gray-12 not-read-only:hover:border-gray-2 focus:outline-none"
 ></textarea>

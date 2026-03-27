@@ -128,7 +128,7 @@
 
 	{#if showingLanguageList}
 		<div
-			class="absolute inset-x-0 top-full mt-1 overflow-hidden rounded-2xl bg-gray-2 text-xs shadow-lg"
+			class="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-2xl bg-gray-2 text-xs shadow-lg"
 		>
 			<div class="max-h-[60vh] overflow-x-hidden overflow-y-auto p-2">
 				{#if interimChosenLanguage == null}
