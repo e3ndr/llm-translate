@@ -15,9 +15,14 @@ export declare interface ConversationMessage {
 	content: string;
 }
 
+export declare interface ResponseChunk {
+	content: string;
+	totalTokens: number;
+}
+
 export abstract class Provider {
 	abstract stream(
 		model: string,
 		messages: ConversationMessage[]
-	): AsyncIterableIterator<ConversationMessage>;
+	): AsyncIterableIterator<ResponseChunk>;
 }

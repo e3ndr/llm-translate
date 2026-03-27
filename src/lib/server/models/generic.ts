@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import type { ConversationMessage, Provider } from '$lib/server/providers/_index';
+import type { AIResponse, ConversationMessage, Provider } from '$lib/server/providers/_index';
 import { ALL_LANGUAGES_MAPPED, LanguageCode } from '$lib/languages';
 import { Model } from './_index';
 
@@ -8,12 +8,7 @@ export class GenericModel extends Model {
 
 	readonly autodetectSourceLanguage = true;
 
-	public async *translate(
-		provider: Provider,
-		from: LanguageCode,
-		to: LanguageCode,
-		text: string
-	): AsyncIterableIterator<string> {
+	public prompt(from: LanguageCode, to: LanguageCode, text: string): ConversationMessage[] {
 		const sourceLang = ALL_LANGUAGES_MAPPED[from];
 		const targetLang = ALL_LANGUAGES_MAPPED[to];
 		const model = env.MODEL!;
@@ -55,15 +50,11 @@ Output:
 ${text}`;
 		}
 
-		const messages: ConversationMessage[] = [
+		return [
 			{
 				role: 'user',
 				content: prompt
 			}
 		];
-
-		for await (const message of provider.stream(model, messages)) {
-			yield message.content;
-		}
 	}
 }

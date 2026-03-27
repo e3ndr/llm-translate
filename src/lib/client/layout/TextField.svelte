@@ -33,7 +33,7 @@
 		class="text-md h-full w-full resize-none px-4 pt-4 text-gray-12 focus:outline-none md:h-96"
 	></textarea>
 
-	<div class="px-4 py-1 text-sm text-gray-10 select-none">
+	<div class="px-3 py-1 text-sm text-gray-10 select-none">
 		<!-- svelte-ignore slot_element_deprecated -->
 		<slot />
 	</div>

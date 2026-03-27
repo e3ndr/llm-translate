@@ -10,12 +10,17 @@ export async function getMetadata(fetchFn = fetch): Promise<TranslateMetadata> {
 	return await (await fetchFn('/api/translate')).json();
 }
 
+declare interface TranslationChunk {
+	content: string;
+	totalTokens: number;
+}
+
 export async function* translate(
 	from: LanguageCode,
 	to: LanguageCode,
 	text: string,
 	fetchFn = fetch
-): AsyncIterableIterator<string> {
+): AsyncIterableIterator<TranslationChunk> {
 	const res = await fetchFn('/api/translate', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
@@ -27,8 +32,6 @@ export async function* translate(
 	}
 
 	for await (const obj of consumeNDJSON(res)) {
-		if (obj.content) {
-			yield obj.content;
-		}
+		yield obj;
 	}
 }

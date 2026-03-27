@@ -1,6 +1,6 @@
 // https://ollama.com/library/translategemma
 import { env } from '$env/dynamic/private';
-import type { ConversationMessage, Provider } from '$lib/server/providers/_index';
+import type { AIResponse, ConversationMessage, Provider } from '$lib/server/providers/_index';
 import { LanguageCode } from '$lib/languages';
 import { Model } from './_index';
 
@@ -9,12 +9,7 @@ export class TranslateGemmaModel extends Model {
 
 	readonly autodetectSourceLanguage = false;
 
-	public async *translate(
-		provider: Provider,
-		from: LanguageCode,
-		to: LanguageCode,
-		text: string
-	): AsyncIterableIterator<string> {
+	public prompt(from: LanguageCode, to: LanguageCode, text: string): ConversationMessage[] {
 		if (!modelLanguages[from]) {
 			throw new Error(`Unsupported source language: ${from}`);
 		}
@@ -27,9 +22,7 @@ export class TranslateGemmaModel extends Model {
 		const sourceCode = from;
 		const targetCode = to;
 
-		const model = env.MODEL!;
-
-		const messages: ConversationMessage[] = [
+		return [
 			{
 				role: 'user',
 				content: `You are a professional ${sourceLang} (${sourceCode}) to ${targetLang} (${targetCode}) translator. Your goal is to accurately convey the meaning and nuances of the original ${sourceLang} text while adhering to ${targetLang} grammar, vocabulary, and cultural sensitivities.
@@ -39,13 +32,10 @@ Produce only the ${targetLang} translation, without any additional explanations 
 ${text}`
 			}
 		];
-
-		for await (const message of provider.stream(model, messages)) {
-			yield message.content;
-		}
 	}
 }
 
+// @ts-ignore
 const modelLanguages: Record<LanguageCode, string> = {
 	[LanguageCode['aa']]: 'Afar',
 	[LanguageCode['aa-DJ']]: 'Afar',

@@ -18,6 +18,7 @@
 	let translatedOutput = $state('');
 	let translatedTokens = $state(0);
 	let copyTranslationConfirm = $state(false);
+	let translateElapsedTimeMs = $state(0);
 
 	let isLoading = $state(false);
 
@@ -30,19 +31,39 @@
 		if (textInput.trim() === '') {
 			translatedOutput = '';
 			translatedTokens = 0;
+			translateElapsedTimeMs = 0;
 			return;
 		}
 		translatedOutput = '';
 		translatedTokens = 0;
+		translateElapsedTimeMs = 0;
 		isLoading = true;
+
+		const startedAt = performance.now();
+		let translationBuffer = '';
+		let translatedTokensBuffer = 0;
+
 		try {
-			for await (const token of translate(sourceLanguage, targetLanguage, textInput)) {
-				translatedOutput += token;
-				translatedTokens++;
+			function update() {
+				// Avoid mutating faster than the UI can update. perf :^)
+				translatedOutput = translationBuffer;
+				translatedTokens = translatedTokensBuffer;
+				translateElapsedTimeMs = performance.now() - startedAt;
+				if (isLoading) {
+					requestAnimationFrame(update);
+				}
 			}
-			translatedOutput = translatedOutput.trim();
+			requestAnimationFrame(update);
+
+			for await (const chunk of translate(sourceLanguage, targetLanguage, textInput)) {
+				translationBuffer += chunk.content;
+				translatedTokensBuffer = chunk.totalTokens;
+			}
 		} finally {
 			isLoading = false;
+			translatedOutput = translationBuffer.trim();
+			translatedTokens = translatedTokensBuffer;
+			translateElapsedTimeMs = performance.now() - startedAt;
 		}
 	}
 
@@ -149,10 +170,10 @@
 				<div class="flex flex-row space-x-2">
 					<div class="flex-1"></div>
 
-					<div>
+					<span class="tabular-nums">
 						{getWordCount(textInput)}
 						{getWordCount(textInput) == 1 ? 'word' : 'words'}
-					</div>
+					</span>
 				</div>
 			</TextField>
 		</div>
@@ -171,11 +192,18 @@
 						</div>
 					{/if}
 
+					{#if translateElapsedTimeMs > 0}
+						{@const seconds = (translateElapsedTimeMs / 1000).toFixed(1)}
+						<span class="tabular-nums">
+							{seconds}s
+						</span>
+					{/if}
+
 					<div class="flex-1"></div>
 
 					<button
 						class:hover:text-gray-12={!copyTranslationConfirm && translatedTokens > 0}
-						disabled={translatedTokens == 0}
+						disabled={translatedTokens == 0 || isLoading}
 						onclick={() => {
 							if (copyTranslationConfirm) return; // prevent spamming the copy button
 							navigator.clipboard.writeText(translatedOutput);
@@ -212,13 +240,17 @@
 						<span class="sr-only">Copy translation to clipboard</span>
 					</button>
 
-					<div>
+					<span class="tabular-nums">
 						{getWordCount(translatedOutput)}
 						{getWordCount(translatedOutput) == 1 ? 'word' : 'words'}
-						<!-- /
+					</span>
+
+					<span aria-hidden="true"> / </span>
+
+					<span class="tabular-nums">
 						{translatedTokens}
-						{translatedTokens == 1 ? 'token' : 'tokens'} -->
-					</div>
+						{translatedTokens == 1 ? 'token' : 'tokens'}
+					</span>
 				</div>
 			</TextField>
 		</div>

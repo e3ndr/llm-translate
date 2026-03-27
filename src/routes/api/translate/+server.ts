@@ -2,6 +2,7 @@ import { loadModel, Model } from '$lib/server/models/_index';
 import { loadProvider, Provider } from '$lib/server/providers/_index';
 import { ndjsonResponse } from '$lib/ndjson';
 import type { RequestHandler } from './$types';
+import { env } from '$env/dynamic/private';
 
 let cachedModel: Model | null = null;
 let cachedProvider: Provider | null = null;
@@ -37,9 +38,11 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const { from, to, text } = await request.json();
 
+	const prompt = cachedModel!.prompt(from, to, text);
+
 	return ndjsonResponse(async (send) => {
-		for await (const token of cachedModel!.translate(cachedProvider!, from, to, text)) {
-			send({ content: token });
+		for await (const t of cachedProvider!.stream(env.MODEL!, prompt)) {
+			send(t);
 		}
 	});
 };

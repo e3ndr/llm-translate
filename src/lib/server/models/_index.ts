@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import type { Provider } from '$lib/server/providers/_index';
+import type { ConversationMessage, Provider } from '$lib/server/providers/_index';
 import { LanguageCode } from '$lib/languages';
 
 export async function loadModel(): Promise<Model> {
@@ -15,10 +15,5 @@ export abstract class Model {
 
 	abstract readonly autodetectSourceLanguage: boolean;
 
-	public abstract translate(
-		provider: Provider,
-		from: LanguageCode,
-		to: LanguageCode,
-		text: string
-	): AsyncIterableIterator<string>;
+	public abstract prompt(from: LanguageCode, to: LanguageCode, text: string): ConversationMessage[];
 }
