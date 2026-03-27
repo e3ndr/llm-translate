@@ -16,8 +16,8 @@
 
 	let isLoading = $state(false);
 
-	let sourceLanguage = $state(LanguageCode.en);
-	let targetLanguage = $state(LanguageCode.fr);
+	let sourceLanguage = $state(LanguageCode.auto);
+	let targetLanguage = $state(LanguageCode.en);
 
 	async function doTranslate() {
 		if (isLoading) return; // prevent multiple concurrent translations
@@ -47,25 +47,33 @@
 	});
 
 	onMount(() => {
-		sourceLanguage = localStorage.getItem('sourceLanguage') as LanguageCode || sourceLanguage;
-		targetLanguage = localStorage.getItem('targetLanguage') as LanguageCode || targetLanguage;
+		sourceLanguage = (localStorage.getItem('sourceLanguage') as LanguageCode) || sourceLanguage;
+		targetLanguage = (localStorage.getItem('targetLanguage') as LanguageCode) || targetLanguage;
+
+		if (sourceLanguage == LanguageCode.auto && !data.metadata.autodetectSourceLanguage) {
+			sourceLanguage = LanguageCode.es; // fallback to Spanish->English if auto-detect isn't supported
+
+			if (sourceLanguage == targetLanguage) {
+				targetLanguage = LanguageCode.en;
+			}
+		}
 
 		$effect(() => {
 			localStorage.setItem('sourceLanguage', sourceLanguage);
 			localStorage.setItem('targetLanguage', targetLanguage);
 		});
-	})
+	});
 </script>
 
 <svelte:head>
-	<title>{env.PUBLIC_SITENAME || "LLM-Translate"}</title>
+	<title>{env.PUBLIC_SITENAME || 'LLM-Translate'}</title>
 </svelte:head>
 
 <div class="flex h-full w-full flex-row space-x-1 p-8">
 	<div class="flex-1">
 		<LanguagePane
 			supportedLanguages={data.metadata.supportedLanguages}
-			disableLanguage={data.metadata.autodetectSourceLanguage}
+			supportsAutoDetect={data.metadata.autodetectSourceLanguage}
 			disabled={isLoading}
 			bind:text={textInput}
 			bind:chosenLanguage={sourceLanguage}
@@ -75,7 +83,7 @@
 	</div>
 
 	<div>
-		{#if data.metadata.autodetectSourceLanguage}
+		{#if sourceLanguage == LanguageCode.auto}
 			<div class="w-6"></div>
 		{:else}
 			<button

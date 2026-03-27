@@ -14,13 +14,13 @@ export class GenericModel extends Model {
 		to: LanguageCode,
 		text: string
 	): AsyncIterableIterator<string> {
+		const sourceLang = ALL_LANGUAGES_MAPPED[from];
 		const targetLang = ALL_LANGUAGES_MAPPED[to];
 		const model = env.MODEL!;
 
-		const messages: ConversationMessage[] = [
-			{
-				role: 'user',
-				content: `You are an expert-level ${targetLang.name} (${to}) translator.
+		let prompt;
+		if (from == LanguageCode.auto) {
+			prompt = `You are an expert-level ${targetLang.name} (${to}) translator.
 
 Your task is to translate the following text into precise, idiomatic ${targetLang.name}.
 
@@ -35,7 +35,30 @@ Requirements:
 Output:
 - Return ONLY the translated text, nothing else.
 
-			${text}`
+${text}`;
+		} else {
+			prompt = `You are an expert-level ${sourceLang.name} (${from}) to ${targetLang.name} (${to}) translator.
+
+Your task is to translate the following ${sourceLang.name} (${from}) text into precise, idiomatic ${targetLang.name}.
+
+Requirements:
+- Preserve meaning, nuance, and tone exactly.
+- Keep formatting, punctuation, and structure where possible.
+- Do NOT summarize, paraphrase, or reinterpret.
+- Do NOT add explanations, metadata, or commentary.
+- If the input is already ${targetLang.name}, return it unchanged.
+- If any part is ambiguous, choose the most contextually accurate translation without noting uncertainty.
+
+Output:
+- Return ONLY the translated text, nothing else.
+
+${text}`;
+		}
+
+		const messages: ConversationMessage[] = [
+			{
+				role: 'user',
+				content: prompt
 			}
 		];
 

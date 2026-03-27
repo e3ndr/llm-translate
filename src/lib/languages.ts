@@ -1,4 +1,4 @@
-export declare type LanguageDirection = 'ltr' | 'rtl';
+export declare type LanguageDirection = 'ltr' | 'rtl' | 'auto';
 
 export declare interface Language {
 	code: LanguageCode;
@@ -8,6 +8,7 @@ export declare interface Language {
 }
 
 export enum LanguageCode {
+	'auto' = 'auto',
 	'aa' = 'aa',
 	'aa-DJ' = 'aa-DJ',
 	'aa-ER' = 'aa-ER',
@@ -592,6 +593,12 @@ export enum LanguageCode {
 }
 
 export const ROOT_LANGUAGES: Language[] = [
+	{
+		code: LanguageCode['auto'],
+		name: 'Auto Detect',
+		direction: 'auto',
+		children: []
+	},
 	{
 		code: LanguageCode['aa'],
 		name: 'Afar',
