@@ -19,13 +19,22 @@
 	}: Props = $props();
 </script>
 
-<textarea
-	bind:value={text}
-	{placeholder}
-	{disabled}
-	{readonly}
-	dir={ALL_LANGUAGES_MAPPED[language].direction}
+<div
+	class="h-full overflow-hidden rounded-2xl md:h-fit"
 	class:bg-gray-3={!readonly}
 	class:bg-gray-2={readonly}
-	class="text-md h-full max-h-96 w-full resize-none rounded-2xl p-4 text-gray-12 not-read-only:hover:border-gray-2 focus:outline-none"
-></textarea>
+>
+	<textarea
+		bind:value={text}
+		{placeholder}
+		{disabled}
+		{readonly}
+		dir={ALL_LANGUAGES_MAPPED[language].direction}
+		class="text-md h-full w-full resize-none px-4 pt-4 text-gray-12 focus:outline-none md:h-96"
+	></textarea>
+
+	<div class="px-4 py-1 text-sm text-gray-10 select-none">
+		<!-- svelte-ignore slot_element_deprecated -->
+		<slot />
+	</div>
+</div>

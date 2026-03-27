@@ -7,6 +7,8 @@
 	import { onMount, untrack } from 'svelte';
 	import LanguageSelector from '$lib/client/layout/LanguageSelector.svelte';
 	import TextField from '$lib/client/layout/TextField.svelte';
+	import { getWordCount } from '$lib/client/words';
+	import LoadingSpinner from '$lib/client/layout/LoadingSpinner.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -14,6 +16,8 @@
 
 	let textInput = $state('');
 	let translatedOutput = $state('');
+	let translatedTokens = $state(0);
+	let copyTranslationConfirm = $state(false);
 
 	let isLoading = $state(false);
 
@@ -25,13 +29,16 @@
 		if (isLoading) return; // prevent multiple concurrent translations
 		if (textInput.trim() === '') {
 			translatedOutput = '';
+			translatedTokens = 0;
 			return;
 		}
 		translatedOutput = '';
+		translatedTokens = 0;
 		isLoading = true;
 		try {
 			for await (const token of translate(sourceLanguage, targetLanguage, textInput)) {
 				translatedOutput += token;
+				translatedTokens++;
 			}
 			translatedOutput = translatedOutput.trim();
 		} finally {
@@ -138,7 +145,16 @@
 				placeholder="Enter text to translate"
 				language={sourceLanguage}
 				disabled={isLoading}
-			/>
+			>
+				<div class="flex flex-row space-x-2">
+					<div class="flex-1"></div>
+
+					<div>
+						{getWordCount(textInput)}
+						{getWordCount(textInput) == 1 ? 'word' : 'words'}
+					</div>
+				</div>
+			</TextField>
 		</div>
 
 		<div class="basis-1/2">
@@ -147,7 +163,64 @@
 				placeholder="Translation will appear here"
 				language={targetLanguage}
 				readonly
-			/>
+			>
+				<div class="flex flex-row space-x-2">
+					{#if isLoading}
+						<div>
+							<LoadingSpinner />
+						</div>
+					{/if}
+
+					<div class="flex-1"></div>
+
+					<button
+						class:hover:text-gray-12={!copyTranslationConfirm && translatedTokens > 0}
+						disabled={translatedTokens == 0}
+						onclick={() => {
+							if (copyTranslationConfirm) return; // prevent spamming the copy button
+							navigator.clipboard.writeText(translatedOutput);
+							copyTranslationConfirm = true;
+							setTimeout(() => (copyTranslationConfirm = false), 1500);
+						}}
+					>
+						{#if copyTranslationConfirm}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-4 w-4"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg
+							>
+						{:else}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-4 w-4"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path
+									d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+								/></svg
+							>
+						{/if}
+						<span class="sr-only">Copy translation to clipboard</span>
+					</button>
+
+					<div>
+						{getWordCount(translatedOutput)}
+						{getWordCount(translatedOutput) == 1 ? 'word' : 'words'}
+						<!-- /
+						{translatedTokens}
+						{translatedTokens == 1 ? 'token' : 'tokens'} -->
+					</div>
+				</div>
+			</TextField>
 		</div>
 	</div>
 </div>
